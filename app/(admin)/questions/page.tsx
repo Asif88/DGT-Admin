@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { Pencil } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -12,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
+import { DeleteQuestionButton } from "@/components/questions/delete-question-button"
 
 const QUESTION_TEXT_MAX_LENGTH = 60
 
@@ -154,15 +156,10 @@ export default async function QuestionsPage({
                               <Link href={`/questions/${question.id}/edit`} />
                             }
                           >
+                            <Pencil className="size-4" />
                             Edit
                           </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            disabled
-                          >
-                            Delete
-                          </Button>
+                          <DeleteQuestionButton id={question.id} />
                         </div>
                       </TableCell>
                     </TableRow>
