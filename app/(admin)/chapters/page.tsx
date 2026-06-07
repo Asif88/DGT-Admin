@@ -37,7 +37,7 @@ export default async function ChaptersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Chapters</h1>
-        <Button render={<Link href="/chapters/new" />}>Add Chapter</Button>
+        <Button nativeButton={false} render={<Link href="/chapters/new" />}>Add Chapter</Button>
       </div>
 
       {chapters && chapters.length > 0 ? (
@@ -70,6 +70,7 @@ export default async function ChaptersPage() {
                       <Button
                         variant="outline"
                         size="sm"
+                        nativeButton={false}
                         render={<Link href={`/chapters/${chapter.id}/edit`} />}
                       >
                         Edit
