@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { PlusCircle, Pencil } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -34,7 +35,14 @@ export default async function ChaptersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Chapters</h1>
-        <Button nativeButton={false} render={<Link href="/chapters/new" />}>Add Chapter</Button>
+        <Button
+          className="bg-brand text-white hover:bg-brand/90"
+          nativeButton={false}
+          render={<Link href="/chapters/new" />}
+        >
+          <PlusCircle className="size-4" />
+          Add Chapter
+        </Button>
       </div>
 
       <Card>
@@ -62,6 +70,7 @@ export default async function ChaptersPage() {
                             nativeButton={false}
                             render={<Link href={`/chapters/${chapter.id}/edit`} />}
                           >
+                            <Pencil className="size-4" />
                             Edit
                           </Button>
                           <DeleteChapterButton id={chapter.id} />
