@@ -62,3 +62,10 @@ export async function updateUser(
   if (error) return error.message
   redirect(`/users/${id}`)
 }
+
+export async function deleteUser(id: string): Promise<void> {
+  const supabase = createServiceClient()
+  const { error } = await supabase.auth.admin.deleteUser(id)
+  if (error) throw new Error(error.message)
+  redirect("/users")
+}

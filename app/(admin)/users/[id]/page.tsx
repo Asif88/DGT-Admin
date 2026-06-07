@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { SuspendButton } from "@/components/users/suspend-button"
 import { ActivateButton } from "@/components/users/activate-button"
+import { DeleteUserButton } from "@/components/users/delete-user-button"
 
 function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return "Never"
@@ -93,6 +94,8 @@ export default async function UserDetailPage({
           <SuspendButton id={id} />
         )}
       </div>
+
+      <DeleteUserButton id={id} />
     </div>
   )
 }
