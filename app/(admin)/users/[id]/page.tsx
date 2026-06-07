@@ -24,11 +24,8 @@ export default async function UserDetailPage({
   const { id } = await params
   const supabase = createServiceClient()
 
-  const [{ data: userData, error: userError }, { data: profile }] =
-    await Promise.all([
-      supabase.auth.admin.getUserById(id),
-      supabase.from("profiles").select("*").eq("id", id).single(),
-    ])
+  const { data: userData, error: userError } =
+    await supabase.auth.admin.getUserById(id)
 
   if (userError || !userData?.user) {
     notFound()
@@ -56,16 +53,8 @@ export default async function UserDetailPage({
         <CardContent className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-x-8 gap-y-4">
             <div>
-              <p className="text-sm text-muted-foreground">Name</p>
-              <p className="font-medium">{profile?.name ?? "—"}</p>
-            </div>
-            <div>
               <p className="text-sm text-muted-foreground">Email</p>
               <p className="font-medium">{user.email ?? "—"}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Language</p>
-              <p className="font-medium">{profile?.language ?? "—"}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Status</p>

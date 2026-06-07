@@ -12,12 +12,6 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
-type Profile = {
-  id: string
-  name: string
-  language: string
-}
-
 function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return "Never"
   return new Date(dateStr).toLocaleDateString("en-US", {
@@ -30,31 +24,19 @@ function formatDate(dateStr: string | null | undefined): string {
 export default async function UsersPage() {
   const supabase = createServiceClient()
 
-  const [{ data: authData, error: authError }, { data: profiles }] =
-    await Promise.all([
-      supabase.auth.admin.listUsers(),
-      supabase.from("profiles").select("id, name, language"),
-    ])
+  const { data: authData, error: authError } =
+    await supabase.auth.admin.listUsers()
 
   if (authError) {
     throw new Error(`Failed to load users: ${authError.message}`)
   }
 
-  const profileMap = new Map<string, Profile>(
-    (profiles ?? []).map((p) => [p.id, p as Profile])
-  )
-
-  const users = (authData?.users ?? []).map((user) => {
-    const profile = profileMap.get(user.id)
-    return {
-      id: user.id,
-      email: user.email ?? "—",
-      name: profile?.name ?? "—",
-      language: profile?.language ?? "—",
-      createdAt: user.created_at,
-      lastSignInAt: user.last_sign_in_at,
-    }
-  })
+  const users = (authData?.users ?? []).map((user) => ({
+    id: user.id,
+    email: user.email ?? "—",
+    createdAt: user.created_at,
+    lastSignInAt: user.last_sign_in_at,
+  }))
 
   return (
     <div className="space-y-6">
@@ -76,9 +58,7 @@ export default async function UsersPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead className="w-28">Language</TableHead>
                   <TableHead className="w-36">Joined</TableHead>
                   <TableHead className="w-36">Last sign in</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -87,11 +67,9 @@ export default async function UsersPage() {
               <TableBody>
                 {users.map((user) => (
                   <TableRow key={user.id} className="hover:bg-muted/50">
-                    <TableCell className="font-medium">{user.name}</TableCell>
                     <TableCell className="text-muted-foreground">
                       {user.email}
                     </TableCell>
-                    <TableCell>{user.language}</TableCell>
                     <TableCell className="text-muted-foreground">
                       {formatDate(user.createdAt)}
                     </TableCell>
