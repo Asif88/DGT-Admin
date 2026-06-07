@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react"
 import { Check, Plus, Trash2 } from "lucide-react"
-import { updateQuestion } from "../../actions"
+import { updateQuestion, uploadQuestionMedia } from "../../actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -57,6 +57,26 @@ export function EditQuestionForm({
   const [correctIndex, setCorrectIndex] = useState<number | null>(
     initialCorrectIndex >= 0 ? initialCorrectIndex : null
   )
+
+  const [imageUrl, setImageUrl] = useState(question.image_url ?? "")
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState("")
+
+  async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    setUploadError("")
+    const fd = new FormData()
+    fd.append("file", file)
+    const result = await uploadQuestionMedia(fd)
+    if ("error" in result) {
+      setUploadError(result.error)
+    } else {
+      setImageUrl(result.url)
+    }
+    setUploading(false)
+  }
 
   function addAnswer() {
     if (answers.length < MAX_ANSWERS) {
@@ -200,12 +220,25 @@ export function EditQuestionForm({
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="space-y-1.5">
-            <Label htmlFor="imageUrl">Image URL</Label>
-            <Input id="imageUrl" name="imageUrl" type="url" placeholder="https://..." defaultValue={question.image_url ?? ""} />
+            <Label htmlFor="imageFile">Image</Label>
+            <input
+              id="imageFile"
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              disabled={uploading}
+              className="block text-sm"
+            />
+            <input type="hidden" name="imageUrl" value={imageUrl} />
+            {uploading && <p className="text-sm text-muted-foreground">Uploading...</p>}
+            {uploadError && <p className="text-sm text-destructive">{uploadError}</p>}
+            {imageUrl && !uploading && (
+              <img src={imageUrl} alt="preview" className="mt-2 h-24 rounded object-cover" />
+            )}
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="videoUrl">Video URL</Label>
-            <Input id="videoUrl" name="videoUrl" type="url" placeholder="https://..." defaultValue={question.video_url ?? ""} />
+            <Input id="videoUrl" name="videoUrl" type="url" placeholder="https://youtube.com/..." defaultValue={question.video_url ?? ""} />
           </div>
         </CardContent>
       </Card>
