@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { PlusCircle } from "lucide-react"
+import { Pencil, PlusCircle } from "lucide-react"
 import { createServiceClient } from "@/lib/supabase/service"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -125,14 +125,25 @@ export default async function UsersPage({
                       {formatDate(user.lastSignInAt)}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        nativeButton={false}
-                        render={<Link href={`/users/${user.id}`} />}
-                      >
-                        View
-                      </Button>
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          nativeButton={false}
+                          render={<Link href={`/users/${user.id}`} />}
+                        >
+                          View
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          nativeButton={false}
+                          render={<Link href={`/users/${user.id}/edit`} />}
+                        >
+                          <Pencil className="size-4" />
+                          Edit
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
