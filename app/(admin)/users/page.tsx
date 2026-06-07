@@ -1,10 +1,12 @@
 import Link from "next/link"
+import { Suspense } from "react"
 import { Pencil, PlusCircle } from "lucide-react"
 import { createServiceClient } from "@/lib/supabase/service"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
+import { UserSearchInput } from "@/components/users/user-search-input"
 import {
   Table,
   TableBody,
@@ -26,9 +28,9 @@ function formatDate(dateStr: string | null | undefined): string {
 export default async function UsersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ role?: string }>
+  searchParams: Promise<{ role?: string; search?: string }>
 }) {
-  const { role } = await searchParams
+  const { role, search } = await searchParams
   const supabase = createServiceClient()
 
   const { data: authData, error: authError } =
@@ -46,12 +48,17 @@ export default async function UsersPage({
     lastSignInAt: user.last_sign_in_at,
   }))
 
-  const filtered =
+  const byRole =
     role === "admin"
       ? users.filter((u) => u.isAdmin)
       : role === "user"
       ? users.filter((u) => !u.isAdmin)
       : users
+
+  const query = search?.toLowerCase().trim() ?? ""
+  const filtered = query
+    ? byRole.filter((u) => u.email.toLowerCase().includes(query))
+    : byRole
 
   return (
     <div className="space-y-6">
@@ -67,29 +74,34 @@ export default async function UsersPage({
         </Button>
       </div>
 
-      <div className="flex gap-2">
-        {[
-          { label: "All", value: undefined },
-          { label: "Admin", value: "admin" },
-          { label: "Users", value: "user" },
-        ].map(({ label, value }) => {
-          const isActive = (role ?? undefined) === value
-          const href = value ? `/users?role=${value}` : "/users"
-          return (
-            <Link
-              key={label}
-              href={href}
-              className={cn(
-                "rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-brand text-white"
-                  : "border border-border text-muted-foreground hover:bg-muted"
-              )}
-            >
-              {label}
-            </Link>
-          )
-        })}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex gap-2">
+          {[
+            { label: "All", value: undefined },
+            { label: "Admin", value: "admin" },
+            { label: "Users", value: "user" },
+          ].map(({ label, value }) => {
+            const isActive = (role ?? undefined) === value
+            const href = value ? `/users?role=${value}` : "/users"
+            return (
+              <Link
+                key={label}
+                href={href}
+                className={cn(
+                  "rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-brand text-white"
+                    : "border border-border text-muted-foreground hover:bg-muted"
+                )}
+              >
+                {label}
+              </Link>
+            )
+          })}
+        </div>
+        <Suspense>
+          <UserSearchInput defaultValue={search} />
+        </Suspense>
       </div>
 
       <Card>
