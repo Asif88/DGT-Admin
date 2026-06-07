@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -60,7 +61,13 @@ export default function LoginPage() {
           </div>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="space-y-4">
+          {searchParams.get('error') === 'access_denied' && (
+            <p className="rounded-md bg-destructive/10 px-4 py-3 text-sm text-destructive text-center">
+              You do not have permission to access the admin panel.
+            </p>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email field */}
             <div className="space-y-2">
