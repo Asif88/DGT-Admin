@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useState } from "react"
+import { useActionState, useRef, useState } from "react"
 import { Check, Plus, Trash2 } from "lucide-react"
 import { updateQuestion, uploadQuestionMedia } from "../../actions"
 import { Button } from "@/components/ui/button"
@@ -57,6 +57,8 @@ export function EditQuestionForm({
   const [correctIndex, setCorrectIndex] = useState<number | null>(
     initialCorrectIndex >= 0 ? initialCorrectIndex : null
   )
+
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [imageUrl, setImageUrl] = useState(question.image_url ?? "")
   const [uploading, setUploading] = useState(false)
@@ -220,21 +222,29 @@ export function EditQuestionForm({
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="space-y-1.5">
-            <Label htmlFor="imageFile">Image</Label>
+            <Label>Image</Label>
             <input
-              id="imageFile"
+              ref={fileInputRef}
               type="file"
               accept="image/*"
+              className="hidden"
               onChange={handleImageChange}
               disabled={uploading}
-              className="block text-sm"
             />
             <input type="hidden" name="imageUrl" value={imageUrl} />
-            {uploading && <p className="text-sm text-muted-foreground">Uploading...</p>}
-            {uploadError && <p className="text-sm text-destructive">{uploadError}</p>}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={uploading}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {uploading ? "Uploading..." : imageUrl ? "Change Image" : "Choose Image"}
+            </Button>
             {imageUrl && !uploading && (
               <img src={imageUrl} alt="preview" className="mt-2 h-24 rounded object-cover" />
             )}
+            {uploadError && <p className="text-sm text-destructive">{uploadError}</p>}
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="videoUrl">Video URL</Label>
