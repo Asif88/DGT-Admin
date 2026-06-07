@@ -1,0 +1,434 @@
+"use client"
+
+import { useActionState, useState, useRef } from "react"
+import { Check, Plus, Trash2, Upload } from "lucide-react"
+import { updateQuestion, uploadQuestionMedia } from "../../actions"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+
+type Chapter = {
+  id: string
+  number: number
+  icon: string
+}
+
+type AnswerRow = {
+  textEn: string
+  textEs: string
+}
+
+type Question = {
+  id: string
+  chapter_id: string
+  order: number
+  text: { en: string; es: string }
+  explanation: { en: string; es: string } | null
+  media_type: "image" | "video" | null
+  media_url: string | null
+  answers: {
+    id: string
+    text: { en: string; es: string }
+    is_correct: boolean
+    order: number
+  }[]
+}
+
+const MIN_ANSWERS = 2
+const MAX_ANSWERS = 4
+
+export function EditQuestionForm({
+  question,
+  chapters,
+}: {
+  question: Question
+  chapters: Chapter[]
+}) {
+  const boundAction = updateQuestion.bind(null, question.id)
+  const [error, formAction, isPending] = useActionState(boundAction, null)
+
+  const sortedAnswers = [...question.answers].sort((a, b) => a.order - b.order)
+  const initialCorrectIndex = sortedAnswers.findIndex((a) => a.is_correct)
+
+  const [answers, setAnswers] = useState<AnswerRow[]>(
+    sortedAnswers.map((a) => ({ textEn: a.text.en, textEs: a.text.es }))
+  )
+  const [correctIndex, setCorrectIndex] = useState<number | null>(
+    initialCorrectIndex >= 0 ? initialCorrectIndex : null
+  )
+  const [mediaType, setMediaType] = useState<"" | "image" | "video">(
+    question.media_type ?? ""
+  )
+  const [mediaUrl, setMediaUrl] = useState<string>(question.media_url ?? "")
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string>("")
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  function addAnswer() {
+    if (answers.length < MAX_ANSWERS) {
+      setAnswers((prev) => [...prev, { textEn: "", textEs: "" }])
+    }
+  }
+
+  function removeAnswer(index: number) {
+    if (answers.length <= MIN_ANSWERS) return
+    setAnswers((prev) => prev.filter((_, i) => i !== index))
+    setCorrectIndex((prev) => {
+      if (prev === null) return null
+      if (prev === index) return null
+      if (prev > index) return prev - 1
+      return prev
+    })
+  }
+
+  function updateAnswer(index: number, field: "textEn" | "textEs", value: string) {
+    setAnswers((prev) =>
+      prev.map((a, i) => (i === index ? { ...a, [field]: value } : a))
+    )
+  }
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploading(true)
+    setUploadError("")
+    setMediaUrl("")
+
+    const fd = new FormData()
+    fd.append("file", file)
+
+    const result = await uploadQuestionMedia(fd)
+
+    if ("error" in result) {
+      setUploadError(result.error)
+    } else {
+      setMediaUrl(result.url)
+    }
+
+    setUploading(false)
+  }
+
+  function handleMediaTypeChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const val = e.target.value as "" | "image" | "video"
+    setMediaType(val)
+    setMediaUrl("")
+    setUploadError("")
+    if (fileInputRef.current) fileInputRef.current.value = ""
+  }
+
+  const inputClass =
+    "h-8 w-full min-w-0 rounded-lg border border-oklch(0.922 0 0) bg-transparent px-2.5 py-1 text-sm transition-colors outline-none placeholder:text-oklch(0.556 0 0) focus-visible:border-oklch(0.708 0 0) focus-visible:ring-3 focus-visible:ring-oklch(0.708 0 0)/50 dark:border-oklch(1 0 0 / 10%) dark:placeholder:text-oklch(0.708 0 0) dark:focus-visible:border-oklch(0.556 0 0)"
+  const textareaClass =
+    "w-full min-w-0 rounded-lg border border-oklch(0.922 0 0) bg-transparent px-2.5 py-1.5 text-sm transition-colors outline-none placeholder:text-oklch(0.556 0 0) focus-visible:border-oklch(0.708 0 0) focus-visible:ring-3 focus-visible:ring-oklch(0.708 0 0)/50 resize-none dark:border-oklch(1 0 0 / 10%) dark:placeholder:text-oklch(0.708 0 0) dark:focus-visible:border-oklch(0.556 0 0)"
+  const selectClass =
+    "h-8 w-full rounded-lg border border-oklch(0.922 0 0) bg-transparent px-2.5 py-1 text-sm transition-colors outline-none focus-visible:border-oklch(0.708 0 0) focus-visible:ring-3 focus-visible:ring-oklch(0.708 0 0)/50 dark:border-oklch(1 0 0 / 10%) dark:bg-oklch(0.145 0 0)"
+
+  return (
+    <form action={formAction} className="space-y-6 max-w-2xl">
+      {/* Chapter */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Chapter</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="chapterId">Chapter</Label>
+            <select
+              id="chapterId"
+              name="chapterId"
+              required
+              defaultValue={question.chapter_id}
+              className={selectClass}
+            >
+              <option value="" disabled>
+                Select a chapter
+              </option>
+              {chapters.map((ch) => (
+                <option key={ch.id} value={ch.id}>
+                  {ch.icon} Chapter {ch.number}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="order">Order</Label>
+            <Input
+              type="number"
+              id="order"
+              name="order"
+              required
+              min={1}
+              defaultValue={question.order}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Question text */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Question Text</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="textEn">English</Label>
+            <textarea
+              id="textEn"
+              name="textEn"
+              required
+              rows={3}
+              defaultValue={question.text.en}
+              placeholder="Question text in English"
+              className={textareaClass}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="textEs">Spanish</Label>
+            <textarea
+              id="textEs"
+              name="textEs"
+              rows={3}
+              defaultValue={question.text.es}
+              placeholder="Question text in Spanish"
+              className={textareaClass}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Explanation */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Explanation (optional)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="explanationEn">English</Label>
+            <textarea
+              id="explanationEn"
+              name="explanationEn"
+              rows={3}
+              defaultValue={question.explanation?.en ?? ""}
+              placeholder="Explanation in English"
+              className={textareaClass}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="explanationEs">Spanish</Label>
+            <textarea
+              id="explanationEs"
+              name="explanationEs"
+              rows={3}
+              defaultValue={question.explanation?.es ?? ""}
+              placeholder="Explanation in Spanish"
+              className={textareaClass}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Media */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Media (optional)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="mediaTypeSelect">Media Type</Label>
+            <select
+              id="mediaTypeSelect"
+              value={mediaType}
+              onChange={handleMediaTypeChange}
+              className={selectClass}
+            >
+              <option value="">None</option>
+              <option value="image">Image</option>
+              <option value="video">Video</option>
+            </select>
+          </div>
+
+          {/* Hidden inputs to carry media type/url into the form data */}
+          <input type="hidden" name="mediaType" value={mediaType || ""} />
+          <input type="hidden" name="mediaUrl" value={mediaUrl} />
+
+          {mediaType && (
+            <div className="space-y-2">
+              <Label htmlFor="mediaFile">
+                Upload {mediaType === "image" ? "Image" : "Video"}
+              </Label>
+              <div className="flex items-center gap-2">
+                <input
+                  ref={fileInputRef}
+                  id="mediaFile"
+                  type="file"
+                  accept={mediaType === "image" ? "image/*" : "video/*"}
+                  onChange={handleFileChange}
+                  disabled={uploading}
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                >
+                  <Upload className="mr-1.5 h-3.5 w-3.5" />
+                  {uploading ? "Uploading…" : "Choose file"}
+                </Button>
+                {mediaUrl && (
+                  <span className="text-xs text-green-600 dark:text-green-400">
+                    Uploaded
+                  </span>
+                )}
+              </div>
+
+              {uploadError && (
+                <p className="text-xs text-destructive">{uploadError}</p>
+              )}
+
+              {mediaUrl && mediaType === "image" && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={mediaUrl}
+                  alt="Uploaded preview"
+                  className="mt-2 max-h-48 rounded-lg border object-contain"
+                />
+              )}
+
+              {mediaUrl && mediaType === "video" && (
+                <video
+                  src={mediaUrl}
+                  controls
+                  className="mt-2 max-h-48 w-full rounded-lg border"
+                />
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Answers */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Answers</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Hidden inputs for answer data */}
+          {answers.map((answer, i) => (
+            <input
+              key={`hidden-en-${i}`}
+              type="hidden"
+              name={`answerTextEn_${i}`}
+              value={answer.textEn}
+            />
+          ))}
+          {answers.map((answer, i) => (
+            <input
+              key={`hidden-es-${i}`}
+              type="hidden"
+              name={`answerTextEs_${i}`}
+              value={answer.textEs}
+            />
+          ))}
+          {answers.map((_, i) => (
+            <input
+              key={`hidden-correct-${i}`}
+              type="hidden"
+              name={`answerCorrect_${i}`}
+              value={correctIndex === i ? "true" : "false"}
+            />
+          ))}
+
+          {answers.map((answer, i) => (
+            <div
+              key={i}
+              className="rounded-lg border border-oklch(0.922 0 0) dark:border-oklch(1 0 0 / 10%) p-3 space-y-2"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-muted-foreground">
+                  Answer {i + 1}
+                </span>
+                <div className="flex items-center gap-3">
+                  <label className="flex items-center gap-1.5 cursor-pointer text-sm">
+                    <input
+                      type="radio"
+                      name="correctAnswerRadio"
+                      checked={correctIndex === i}
+                      onChange={() => setCorrectIndex(i)}
+                      className="accent-brand"
+                    />
+                    Correct
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => removeAnswer(i)}
+                    disabled={answers.length <= MIN_ANSWERS}
+                    className="text-muted-foreground hover:text-destructive disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    aria-label={`Remove answer ${i + 1}`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-xs">English</Label>
+                  <input
+                    type="text"
+                    value={answer.textEn}
+                    onChange={(e) => updateAnswer(i, "textEn", e.target.value)}
+                    placeholder="Answer in English"
+                    required
+                    className={inputClass}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Spanish</Label>
+                  <input
+                    type="text"
+                    value={answer.textEs}
+                    onChange={(e) => updateAnswer(i, "textEs", e.target.value)}
+                    placeholder="Answer in Spanish"
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {answers.length < MAX_ANSWERS && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addAnswer}
+            >
+              <Plus className="mr-1.5 h-3.5 w-3.5" />
+              Add Answer
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+
+      {error && (
+        <p className="text-sm text-destructive" aria-live="polite">
+          {error}
+        </p>
+      )}
+
+      <Button
+        type="submit"
+        disabled={isPending || uploading}
+        className="bg-brand hover:bg-brand-dark text-white"
+      >
+        <Check className="mr-2 h-4 w-4" />
+        {isPending ? "Saving…" : "Save Changes"}
+      </Button>
+    </form>
+  )
+}
