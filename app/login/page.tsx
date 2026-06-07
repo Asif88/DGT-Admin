@@ -52,10 +52,10 @@ export default function LoginPage() {
           {/* Heading */}
           <div className="space-y-1">
             <h1 className="text-2xl font-bold tracking-tight">
-              Iniciar sesión
+              Sign in
             </h1>
             <p className="text-sm text-muted-foreground">
-              Accede al panel de administración
+              Access the administration panel
             </p>
           </div>
         </CardHeader>
@@ -64,7 +64,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email field */}
             <div className="space-y-2">
-              <Label htmlFor="email">Correo electrónico</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -78,7 +78,7 @@ export default function LoginPage() {
 
             {/* Password field */}
             <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
+              <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -95,7 +95,7 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full bg-brand hover:bg-brand-dark text-white"
             >
-              {loading ? "Iniciando..." : "Iniciar sesión"}
+              {loading ? "Signing in..." : "Sign in"}
             </Button>
 
             {/* Error message area */}
