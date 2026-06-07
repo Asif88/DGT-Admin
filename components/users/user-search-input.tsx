@@ -1,7 +1,7 @@
 "use client"
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { useCallback } from "react"
+import { useCallback, useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Search } from "lucide-react"
 
@@ -9,13 +9,15 @@ export function UserSearchInput({ defaultValue }: { defaultValue?: string }) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const [value, setValue] = useState(defaultValue ?? "")
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
+      const next = e.target.value
+      setValue(next)
       const params = new URLSearchParams(searchParams.toString())
-      const value = e.target.value.trim()
-      if (value) {
-        params.set("search", value)
+      if (next.trim()) {
+        params.set("search", next.trim())
       } else {
         params.delete("search")
       }
@@ -30,7 +32,7 @@ export function UserSearchInput({ defaultValue }: { defaultValue?: string }) {
       <Input
         type="search"
         placeholder="Search by email…"
-        defaultValue={defaultValue}
+        value={value}
         onChange={handleChange}
         className="pl-9"
       />
