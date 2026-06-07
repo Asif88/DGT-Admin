@@ -15,10 +15,6 @@ type Chapter = {
   id: string
   number: number
   icon: string
-  translations: {
-    en?: { name?: string }
-    es?: { name?: string }
-  }
 }
 
 export default async function ChaptersPage() {
@@ -26,7 +22,7 @@ export default async function ChaptersPage() {
 
   const { data: chapters, error } = await supabase
     .from("chapters")
-    .select("id, number, icon, translations")
+    .select("id, number, icon")
     .order("number", { ascending: true })
 
   if (error) {
@@ -46,25 +42,15 @@ export default async function ChaptersPage() {
             <TableRow>
               <TableHead>#</TableHead>
               <TableHead>Icon</TableHead>
-              <TableHead>Name (EN)</TableHead>
-              <TableHead>Name (ES)</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {(chapters as Chapter[]).map((chapter) => {
-              const nameEn =
-                chapter.translations?.en?.name ??
-                chapter.translations?.es?.name ??
-                "—"
-              const nameEs = chapter.translations?.es?.name ?? "—"
-
               return (
                 <TableRow key={chapter.id}>
                   <TableCell>{chapter.number}</TableCell>
                   <TableCell>{chapter.icon}</TableCell>
-                  <TableCell>{nameEn}</TableCell>
-                  <TableCell>{nameEs}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Button

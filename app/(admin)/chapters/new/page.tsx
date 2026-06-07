@@ -25,16 +25,6 @@ export default function NewChapterPage() {
           <Input id="icon" name="icon" required placeholder="🚗" />
         </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="nameEn">Name (English)</Label>
-          <Input id="nameEn" name="nameEn" required />
-        </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor="nameEs">Name (Spanish)</Label>
-          <Input id="nameEs" name="nameEs" required />
-        </div>
-
         <Button type="submit">Save Chapter</Button>
       </form>
     </div>

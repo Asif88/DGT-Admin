@@ -10,10 +10,6 @@ type Chapter = {
   id: string
   number: number
   icon: string
-  translations: {
-    en?: { name?: string }
-    es?: { name?: string }
-  }
 }
 
 export default async function EditChapterPage({
@@ -26,7 +22,7 @@ export default async function EditChapterPage({
 
   const { data: chapter } = await supabase
     .from("chapters")
-    .select("id, number, icon, translations")
+    .select("id, number, icon")
     .eq("id", id)
     .single()
 
@@ -34,9 +30,7 @@ export default async function EditChapterPage({
     notFound()
   }
 
-  const { number, icon, translations } = chapter as Chapter
-  const nameEn = translations?.en?.name ?? ""
-  const nameEs = translations?.es?.name ?? ""
+  const { number, icon } = chapter as Chapter
 
   const boundUpdate = updateChapter.bind(null, id)
 
@@ -65,16 +59,6 @@ export default async function EditChapterPage({
         <div className="space-y-1.5">
           <Label htmlFor="icon">Icon</Label>
           <Input id="icon" name="icon" required placeholder="🚗" defaultValue={icon} />
-        </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor="nameEn">Name (English)</Label>
-          <Input id="nameEn" name="nameEn" required defaultValue={nameEn} />
-        </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor="nameEs">Name (Spanish)</Label>
-          <Input id="nameEs" name="nameEs" required defaultValue={nameEs} />
         </div>
 
         <Button type="submit">Save Changes</Button>
