@@ -150,6 +150,26 @@ export async function updateQuestion(
   redirect(redirectUrl)
 }
 
+export async function uploadQuestionMedia(
+  formData: FormData
+): Promise<{ url: string } | { error: string }> {
+  const file = formData.get("file") as File
+  if (!file) return { error: "No file provided" }
+
+  const ext = file.name.split(".").pop()
+  const path = `${crypto.randomUUID()}.${ext}`
+
+  const supabase = createServiceClient()
+  const { error } = await supabase.storage
+    .from("question-media")
+    .upload(path, file, { contentType: file.type })
+
+  if (error) return { error: error.message }
+
+  const { data } = supabase.storage.from("question-media").getPublicUrl(path)
+  return { url: data.publicUrl }
+}
+
 export async function deleteQuestion(id: string) {
   const supabase = createServiceClient()
   const { error } = await supabase.from("questions").delete().eq("id", id)
