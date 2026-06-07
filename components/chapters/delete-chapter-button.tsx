@@ -1,6 +1,7 @@
 "use client"
 
 import { useTransition } from "react"
+import { Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { deleteChapter } from "@/app/(admin)/chapters/actions"
 
@@ -21,6 +22,7 @@ export function DeleteChapterButton({ id }: { id: string }) {
       disabled={isPending}
       onClick={handleDelete}
     >
+      <Trash2 className="size-4" />
       {isPending ? "Deleting..." : "Delete"}
     </Button>
   )
