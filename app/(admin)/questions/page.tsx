@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Pencil } from "lucide-react"
+import { Pencil, PlusCircle } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -12,8 +12,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { cn } from "@/lib/utils"
 import { DeleteQuestionButton } from "@/components/questions/delete-question-button"
+import { ChapterFilter } from "./chapter-filter"
+
 
 const QUESTION_TEXT_MAX_LENGTH = 60
 
@@ -76,38 +77,17 @@ export default async function QuestionsPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Questions</h1>
-        <Button nativeButton={false} render={<Link href={addQuestionHref} />}>
+        <Button
+          className="bg-brand text-white hover:bg-brand/90"
+          nativeButton={false}
+          render={<Link href={addQuestionHref} />}
+        >
+          <PlusCircle className="size-4" />
           Add Question
         </Button>
       </div>
 
-      {/* Chapter filter pills */}
-      <div className="flex flex-wrap gap-2">
-        <Button
-          variant={!chapterId ? "default" : "outline"}
-          size="sm"
-          nativeButton={false}
-          render={<Link href="/questions" />}
-          className={cn(!chapterId && "bg-brand hover:bg-brand/80")}
-        >
-          All
-        </Button>
-        {(chapters as Chapter[]).map((chapter) => {
-          const isActive = chapterId === chapter.id
-          return (
-            <Button
-              key={chapter.id}
-              variant={isActive ? "default" : "outline"}
-              size="sm"
-              nativeButton={false}
-              render={<Link href={`/questions?chapterId=${chapter.id}`} />}
-              className={cn(isActive && "bg-brand hover:bg-brand/80")}
-            >
-              {chapter.icon} Ch. {chapter.number}
-            </Button>
-          )
-        })}
-      </div>
+      <ChapterFilter chapters={chapters as Chapter[]} selectedChapterId={chapterId} />
 
       <Card>
         <CardContent className="p-0">
