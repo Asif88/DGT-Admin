@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { PlusCircle } from "lucide-react"
 import { createServiceClient } from "@/lib/supabase/service"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -59,6 +60,14 @@ export default async function UsersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Users</h1>
+        <Button
+          className="bg-brand text-white hover:bg-brand/90"
+          nativeButton={false}
+          render={<Link href="/users/new" />}
+        >
+          <PlusCircle className="size-4" />
+          Add User
+        </Button>
       </div>
 
       <Card>
