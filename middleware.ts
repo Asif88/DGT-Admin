@@ -23,6 +23,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
+  // Authenticated user without admin role → sign out and redirect to /login?error=access_denied
+  if (user && user.app_metadata?.role !== 'admin') {
+    await supabase.auth.signOut()
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    url.searchParams.set('error', 'access_denied')
+    return NextResponse.redirect(url)
+  }
+
   return supabaseResponse
 }
 
