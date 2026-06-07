@@ -1,7 +1,8 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Pencil } from "lucide-react"
 import { createServiceClient } from "@/lib/supabase/service"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { SuspendButton } from "@/components/users/suspend-button"
@@ -47,7 +48,18 @@ export default async function UserDetailPage({
         </Link>
       </div>
 
-      <h1 className="text-2xl font-bold">User Detail</h1>
+      <div className="flex items-center gap-3">
+        <h1 className="text-2xl font-bold">User Detail</h1>
+        <Button
+          variant="outline"
+          size="sm"
+          nativeButton={false}
+          render={<Link href={`/users/${id}/edit`} />}
+        >
+          <Pencil className="size-4" />
+          Edit
+        </Button>
+      </div>
 
       <Card>
         <CardContent className="p-6 space-y-4">
