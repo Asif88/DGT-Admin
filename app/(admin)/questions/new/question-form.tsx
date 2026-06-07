@@ -36,10 +36,11 @@ export function QuestionForm({
     { textEn: "", textEs: "" },
   ])
   const [correctIndex, setCorrectIndex] = useState<number | null>(null)
-  const [mediaType, setMediaType] = useState<"" | "image" | "video">("")
+  const [mediaType, setMediaType] = useState<"" | "image">("")
   const [mediaUrl, setMediaUrl] = useState<string>("")
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string>("")
+  const [videoUrl, setVideoUrl] = useState<string>("")
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   function addAnswer() {
@@ -88,7 +89,7 @@ export function QuestionForm({
   }
 
   function handleMediaTypeChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const val = e.target.value as "" | "image" | "video"
+    const val = e.target.value as "" | "image"
     setMediaType(val)
     setMediaUrl("")
     setUploadError("")
@@ -219,7 +220,6 @@ export function QuestionForm({
             >
               <option value="">None</option>
               <option value="image">Image</option>
-              <option value="video">Video</option>
             </select>
           </div>
 
@@ -227,17 +227,15 @@ export function QuestionForm({
           <input type="hidden" name="mediaType" value={mediaType || ""} />
           <input type="hidden" name="mediaUrl" value={mediaUrl} />
 
-          {mediaType && (
+          {mediaType === "image" && (
             <div className="space-y-2">
-              <Label htmlFor="mediaFile">
-                Upload {mediaType === "image" ? "Image" : "Video"}
-              </Label>
+              <Label htmlFor="mediaFile">Upload Image</Label>
               <div className="flex items-center gap-2">
                 <input
                   ref={fileInputRef}
                   id="mediaFile"
                   type="file"
-                  accept={mediaType === "image" ? "image/*" : "video/*"}
+                  accept="image/*"
                   onChange={handleFileChange}
                   disabled={uploading}
                   className="hidden"
@@ -263,7 +261,7 @@ export function QuestionForm({
                 <p className="text-xs text-destructive">{uploadError}</p>
               )}
 
-              {mediaUrl && mediaType === "image" && (
+              {mediaUrl && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={mediaUrl}
@@ -271,16 +269,20 @@ export function QuestionForm({
                   className="mt-2 max-h-48 rounded-lg border object-contain"
                 />
               )}
-
-              {mediaUrl && mediaType === "video" && (
-                <video
-                  src={mediaUrl}
-                  controls
-                  className="mt-2 max-h-48 w-full rounded-lg border"
-                />
-              )}
             </div>
           )}
+
+          <div className="space-y-1.5">
+            <Label htmlFor="videoUrl">Video URL (optional)</Label>
+            <Input
+              type="url"
+              id="videoUrl"
+              name="videoUrl"
+              value={videoUrl}
+              onChange={(e) => setVideoUrl(e.target.value)}
+              placeholder="https://..."
+            />
+          </div>
         </CardContent>
       </Card>
 
