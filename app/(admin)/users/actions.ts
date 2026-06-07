@@ -42,3 +42,30 @@ export async function activateUser(id: string) {
   revalidatePath(`/users/${id}`)
   revalidatePath("/users")
 }
+
+export async function updateUser(
+  id: string,
+  _prevState: string | null,
+  formData: FormData
+): Promise<string | null> {
+  const email = String(formData.get("email")).trim()
+  const password = String(formData.get("password")).trim()
+
+  const updates: { email?: string; password?: string } = {}
+  if (email) updates.email = email
+  if (password) updates.password = password
+
+  if (Object.keys(updates).length === 0) return "No changes provided."
+
+  const supabase = createServiceClient()
+  const { error } = await supabase.auth.admin.updateUserById(id, updates)
+  if (error) return error.message
+  redirect(`/users/${id}`)
+}
+
+export async function deleteUser(id: string): Promise<void> {
+  const supabase = createServiceClient()
+  const { error } = await supabase.auth.admin.deleteUser(id)
+  if (error) throw new Error(error.message)
+  redirect("/users")
+}
