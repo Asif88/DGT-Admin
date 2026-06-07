@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { Button } from "@/components/ui/button"
+import { DeleteChapterButton } from "@/components/chapters/delete-chapter-button"
 import {
   Table,
   TableBody,
@@ -73,9 +74,7 @@ export default async function ChaptersPage() {
                       >
                         Edit
                       </Button>
-                      <Button variant="destructive" size="sm" disabled>
-                        Delete
-                      </Button>
+                      <DeleteChapterButton id={chapter.id} />
                     </div>
                   </TableCell>
                 </TableRow>
