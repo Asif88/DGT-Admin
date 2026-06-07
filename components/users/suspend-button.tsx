@@ -9,7 +9,7 @@ export function SuspendButton({ id }: { id: string }) {
 
   return (
     <Button
-      variant="destructive"
+      className="bg-orange-500 hover:bg-orange-600 text-white"
       disabled={isPending}
       onClick={() => {
         if (!confirm("Suspend this user? They will not be able to sign in.")) return
