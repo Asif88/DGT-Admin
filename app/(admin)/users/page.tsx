@@ -1,7 +1,9 @@
 import Link from "next/link"
 import { PlusCircle } from "lucide-react"
 import { createServiceClient } from "@/lib/supabase/service"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import {
   Table,
@@ -21,7 +23,12 @@ function formatDate(dateStr: string | null | undefined): string {
   })
 }
 
-export default async function UsersPage() {
+export default async function UsersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ role?: string }>
+}) {
+  const { role } = await searchParams
   const supabase = createServiceClient()
 
   const { data: authData, error: authError } =
@@ -34,9 +41,17 @@ export default async function UsersPage() {
   const users = (authData?.users ?? []).map((user) => ({
     id: user.id,
     email: user.email ?? "—",
+    isAdmin: user.app_metadata?.role === "admin",
     createdAt: user.created_at,
     lastSignInAt: user.last_sign_in_at,
   }))
+
+  const filtered =
+    role === "admin"
+      ? users.filter((u) => u.isAdmin)
+      : role === "user"
+      ? users.filter((u) => !u.isAdmin)
+      : users
 
   return (
     <div className="space-y-6">
@@ -52,23 +67,56 @@ export default async function UsersPage() {
         </Button>
       </div>
 
+      <div className="flex gap-2">
+        {[
+          { label: "All", value: undefined },
+          { label: "Admin", value: "admin" },
+          { label: "Users", value: "user" },
+        ].map(({ label, value }) => {
+          const isActive = (role ?? undefined) === value
+          const href = value ? `/users?role=${value}` : "/users"
+          return (
+            <Link
+              key={label}
+              href={href}
+              className={cn(
+                "rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
+                isActive
+                  ? "bg-brand text-white"
+                  : "border border-border text-muted-foreground hover:bg-muted"
+              )}
+            >
+              {label}
+            </Link>
+          )
+        })}
+      </div>
+
       <Card>
         <CardContent className="p-0">
-          {users.length > 0 ? (
+          {filtered.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Email</TableHead>
+                  <TableHead className="w-24">Role</TableHead>
                   <TableHead className="w-36">Joined</TableHead>
                   <TableHead className="w-36">Last sign in</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user) => (
+                {filtered.map((user) => (
                   <TableRow key={user.id} className="hover:bg-muted/50">
                     <TableCell className="text-muted-foreground">
                       {user.email}
+                    </TableCell>
+                    <TableCell>
+                      {user.isAdmin ? (
+                        <Badge variant="secondary">Admin</Badge>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {formatDate(user.createdAt)}
