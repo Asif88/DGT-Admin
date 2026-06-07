@@ -34,6 +34,7 @@ export default async function UserDetailPage({
   }
 
   const user = userData.user
+  const isAdmin = user.app_metadata?.role === 'admin'
   const isSuspended =
     !!user.banned_until && new Date(user.banned_until) > new Date()
 
@@ -87,15 +88,19 @@ export default async function UserDetailPage({
         </CardContent>
       </Card>
 
-      <div>
-        {isSuspended ? (
-          <ActivateButton id={id} />
-        ) : (
-          <SuspendButton id={id} />
-        )}
-      </div>
+      {!isAdmin && (
+        <>
+          <div>
+            {isSuspended ? (
+              <ActivateButton id={id} />
+            ) : (
+              <SuspendButton id={id} />
+            )}
+          </div>
 
-      <DeleteUserButton id={id} />
+          <DeleteUserButton id={id} />
+        </>
+      )}
     </div>
   )
 }
