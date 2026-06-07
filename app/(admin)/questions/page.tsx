@@ -28,7 +28,8 @@ type Question = {
   id: string
   order: number
   text: { en?: string; es?: string }
-  media_type: "image" | "video" | null
+  image_url: string | null
+  video_url: string | null
   answers: { count: number }[]
 }
 
@@ -56,7 +57,7 @@ export default async function QuestionsPage({
 
   let questionsQuery = supabase
     .from("questions")
-    .select('id, "order", text, media_type, answers(count)')
+    .select('id, "order", text, image_url, video_url, answers(count)')
     .order("order", { ascending: true })
 
   if (chapterId) {
@@ -117,13 +118,19 @@ export default async function QuestionsPage({
                         {truncate(questionText, QUESTION_TEXT_MAX_LENGTH)}
                       </TableCell>
                       <TableCell>
-                        {question.media_type === "image" ? (
-                          <Badge variant="secondary">Image</Badge>
-                        ) : question.media_type === "video" ? (
-                          <Badge variant="secondary">Video</Badge>
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
+                        {(() => {
+                          const hasImage = !!question.image_url
+                          const hasVideo = !!question.video_url
+                          return hasImage && hasVideo ? (
+                            <Badge variant="secondary">Image + Video</Badge>
+                          ) : hasImage ? (
+                            <Badge variant="secondary">Image</Badge>
+                          ) : hasVideo ? (
+                            <Badge variant="secondary">Video</Badge>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )
+                        })()}
                       </TableCell>
                       <TableCell>{answerCount}</TableCell>
                       <TableCell className="text-right">

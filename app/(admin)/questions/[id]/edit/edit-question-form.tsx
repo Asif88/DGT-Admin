@@ -1,8 +1,8 @@
 "use client"
 
-import { useActionState, useState, useRef } from "react"
-import { Check, Plus, Trash2, Upload } from "lucide-react"
-import { updateQuestion, uploadQuestionMedia } from "../../actions"
+import { useActionState, useState } from "react"
+import { Check, Plus, Trash2 } from "lucide-react"
+import { updateQuestion } from "../../actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -25,8 +25,8 @@ type Question = {
   order: number
   text: { en: string; es: string }
   explanation: { en: string; es: string } | null
-  media_type: "image" | "video" | null
-  media_url: string | null
+  image_url: string | null
+  video_url: string | null
   answers: {
     id: string
     text: { en: string; es: string }
@@ -57,19 +57,6 @@ export function EditQuestionForm({
   const [correctIndex, setCorrectIndex] = useState<number | null>(
     initialCorrectIndex >= 0 ? initialCorrectIndex : null
   )
-  const initialMediaType =
-    question.media_type === "image" ? "image" : ("" as "" | "image")
-  const initialVideoUrl =
-    question.media_type === "video" ? (question.media_url ?? "") : ""
-
-  const [mediaType, setMediaType] = useState<"" | "image">(initialMediaType)
-  const [mediaUrl, setMediaUrl] = useState<string>(
-    question.media_type === "image" ? (question.media_url ?? "") : ""
-  )
-  const [uploading, setUploading] = useState(false)
-  const [uploadError, setUploadError] = useState<string>("")
-  const [videoUrl, setVideoUrl] = useState<string>(initialVideoUrl)
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   function addAnswer() {
     if (answers.length < MAX_ANSWERS) {
@@ -92,36 +79,6 @@ export function EditQuestionForm({
     setAnswers((prev) =>
       prev.map((a, i) => (i === index ? { ...a, [field]: value } : a))
     )
-  }
-
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    setUploading(true)
-    setUploadError("")
-    setMediaUrl("")
-
-    const fd = new FormData()
-    fd.append("file", file)
-
-    const result = await uploadQuestionMedia(fd)
-
-    if ("error" in result) {
-      setUploadError(result.error)
-    } else {
-      setMediaUrl(result.url)
-    }
-
-    setUploading(false)
-  }
-
-  function handleMediaTypeChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const val = e.target.value as "" | "image"
-    setMediaType(val)
-    setMediaUrl("")
-    setUploadError("")
-    if (fileInputRef.current) fileInputRef.current.value = ""
   }
 
   const inputClass =
@@ -243,77 +200,12 @@ export function EditQuestionForm({
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="space-y-1.5">
-            <Label htmlFor="mediaTypeSelect">Media Type</Label>
-            <select
-              id="mediaTypeSelect"
-              value={mediaType}
-              onChange={handleMediaTypeChange}
-              className={selectClass}
-            >
-              <option value="">None</option>
-              <option value="image">Image</option>
-            </select>
+            <Label htmlFor="imageUrl">Image URL</Label>
+            <Input id="imageUrl" name="imageUrl" type="url" placeholder="https://..." defaultValue={question.image_url ?? ""} />
           </div>
-
-          {/* Hidden inputs to carry media type/url into the form data */}
-          <input type="hidden" name="mediaType" value={mediaType || ""} />
-          <input type="hidden" name="mediaUrl" value={mediaUrl} />
-
-          {mediaType === "image" && (
-            <div className="space-y-2">
-              <Label htmlFor="mediaFile">Upload Image</Label>
-              <div className="flex items-center gap-2">
-                <input
-                  ref={fileInputRef}
-                  id="mediaFile"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  disabled={uploading}
-                  className="hidden"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
-                >
-                  <Upload className="mr-1.5 h-3.5 w-3.5" />
-                  {uploading ? "Uploading…" : "Choose file"}
-                </Button>
-                {mediaUrl && (
-                  <span className="text-xs text-green-600 dark:text-green-400">
-                    Uploaded
-                  </span>
-                )}
-              </div>
-
-              {uploadError && (
-                <p className="text-xs text-destructive">{uploadError}</p>
-              )}
-
-              {mediaUrl && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={mediaUrl}
-                  alt="Uploaded preview"
-                  className="mt-2 max-h-48 rounded-lg border object-contain"
-                />
-              )}
-            </div>
-          )}
-
           <div className="space-y-1.5">
-            <Label htmlFor="videoUrl">Video URL (optional)</Label>
-            <Input
-              type="url"
-              id="videoUrl"
-              name="videoUrl"
-              value={videoUrl}
-              onChange={(e) => setVideoUrl(e.target.value)}
-              placeholder="https://..."
-            />
+            <Label htmlFor="videoUrl">Video URL</Label>
+            <Input id="videoUrl" name="videoUrl" type="url" placeholder="https://..." defaultValue={question.video_url ?? ""} />
           </div>
         </CardContent>
       </Card>
@@ -430,7 +322,7 @@ export function EditQuestionForm({
 
       <Button
         type="submit"
-        disabled={isPending || uploading}
+        disabled={isPending}
         className="bg-brand hover:bg-brand-dark text-white"
       >
         <Check className="mr-2 h-4 w-4" />

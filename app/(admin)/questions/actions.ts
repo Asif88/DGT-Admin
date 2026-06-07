@@ -14,16 +14,8 @@ export async function createQuestion(
   const textEs = String(formData.get("textEs")).trim()
   const explanationEn = String(formData.get("explanationEn") ?? "").trim()
   const explanationEs = String(formData.get("explanationEs") ?? "").trim()
-  const imageUrl = String(formData.get("mediaUrl") ?? "").trim() || null
+  const imageUrl = String(formData.get("imageUrl") ?? "").trim() || null
   const videoUrl = String(formData.get("videoUrl") ?? "").trim() || null
-
-  // Image takes priority; fall back to video URL if provided
-  const mediaType: "image" | "video" | null = imageUrl
-    ? "image"
-    : videoUrl
-      ? "video"
-      : null
-  const mediaUrl = imageUrl ?? videoUrl
 
   // Parse answers: answerTextEn_0, answerTextEs_0, answerCorrect_0, ...
   const answers: {
@@ -58,8 +50,8 @@ export async function createQuestion(
         explanationEn || explanationEs
           ? { en: explanationEn, es: explanationEs }
           : null,
-      media_type: mediaType,
-      media_url: mediaUrl,
+      image_url: imageUrl,
+      video_url: videoUrl,
     })
     .select("id")
     .single()
@@ -92,16 +84,8 @@ export async function updateQuestion(
   const textEs = String(formData.get("textEs")).trim()
   const explanationEn = String(formData.get("explanationEn") ?? "").trim()
   const explanationEs = String(formData.get("explanationEs") ?? "").trim()
-  const imageUrl = String(formData.get("mediaUrl") ?? "").trim() || null
+  const imageUrl = String(formData.get("imageUrl") ?? "").trim() || null
   const videoUrl = String(formData.get("videoUrl") ?? "").trim() || null
-
-  // Image takes priority; fall back to video URL if provided
-  const mediaType: "image" | "video" | null = imageUrl
-    ? "image"
-    : videoUrl
-      ? "video"
-      : null
-  const mediaUrl = imageUrl ?? videoUrl
 
   // Parse answers: answerTextEn_0, answerTextEs_0, answerCorrect_0, ...
   const answers: {
@@ -136,8 +120,8 @@ export async function updateQuestion(
         explanationEn || explanationEs
           ? { en: explanationEn, es: explanationEs }
           : null,
-      media_type: mediaType,
-      media_url: mediaUrl,
+      image_url: imageUrl,
+      video_url: videoUrl,
     })
     .eq("id", id)
 
@@ -164,26 +148,6 @@ export async function updateQuestion(
 
   const redirectUrl = `/questions?chapterId=${chapterId}`
   redirect(redirectUrl)
-}
-
-export async function uploadQuestionMedia(
-  formData: FormData
-): Promise<{ url: string } | { error: string }> {
-  const file = formData.get("file") as File
-  if (!file) return { error: "No file provided" }
-
-  const ext = file.name.split(".").pop()
-  const path = `${crypto.randomUUID()}.${ext}`
-
-  const supabase = createServiceClient()
-  const { error } = await supabase.storage
-    .from("question-media")
-    .upload(path, file, { contentType: file.type })
-
-  if (error) return { error: error.message }
-
-  const { data } = supabase.storage.from("question-media").getPublicUrl(path)
-  return { url: data.publicUrl }
 }
 
 export async function deleteQuestion(id: string) {
