@@ -1,7 +1,27 @@
 "use server"
 
+import { redirect } from "next/navigation"
 import { revalidatePath } from "next/cache"
 import { createServiceClient } from "@/lib/supabase/service"
+
+export async function createUser(
+  _prevState: string | null,
+  formData: FormData
+): Promise<string | null> {
+  const email = String(formData.get("email")).trim()
+  const password = String(formData.get("password"))
+
+  const supabase = createServiceClient()
+  const { error } = await supabase.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    // No app_metadata.role set — these users must NOT be able to access the admin panel
+  })
+
+  if (error) return error.message
+  redirect("/users")
+}
 
 export async function suspendUser(id: string) {
   const supabase = createServiceClient()
